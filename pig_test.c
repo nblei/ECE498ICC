@@ -10,14 +10,14 @@
 #define DCLK  4
 
 #define DIN8  26
-#define DIN7  25
-#define DIN6  8
-#define DIN5  7
-#define DIN4  1
-#define DIN3  12
-#define DIN2  16
-#define DIN1  20
-#define DIN0  21
+#define DIN7  21
+#define DIN6  20
+#define DIN5  16
+#define DIN4  12
+#define DIN3  1
+#define DIN2  7
+#define DIN1  8
+#define DIN0  25
 
 #define DOUT0 14
 #define DOUT1 15
@@ -104,9 +104,13 @@ int stop_clock(void)
 
 void set_channel(uint8_t channel)
 {
-	if (0 != gpioWrite(ADDR_A, channel & 1)) GPIO_ERR(ADDR_A);
-	if (0 != gpioWrite(ADDR_B, (channel & 2) >> 1)) GPIO_ERR(ADDR_B);
-	if (0 != gpioWrite(ADDR_C, (channel & 4) >> 2)) GPIO_ERR(ADDR_C);
+	int pina, pinb, pinc;
+	pina = channel & 1;
+	pinb = (channel >> 1) & 1;
+	pinc = (channel >> 2) & 1;
+	if (0 != gpioWrite(ADDR_A, pina)) GPIO_ERR(ADDR_A);
+	if (0 != gpioWrite(ADDR_B, pinb)) GPIO_ERR(ADDR_B);
+	if (0 != gpioWrite(ADDR_C, pinc)) GPIO_ERR(ADDR_C);
 }
 
 unsigned char read_adc(uint8_t channel)
@@ -142,15 +146,18 @@ int main(void)
 {
 	if (PI_INIT_FAILED == gpioInitialise()) {
 		fprintf(stderr, "Unable to initialize pigpio\n");
+		exit(1);
 	}
 	else {
-		printf("pigpio intialized\n");
+		; //printf("pigpio intialized\n");
 	}
 
-	stop_clock();
-	//if (start_clock(TARGET_FREQ) != 0) {
-	//	exit(1);
-	//}
+	printf("\033[2J");
+
+	//stop_clock();
+	if (start_clock(TARGET_FREQ) != 0) {
+		exit(1);
+	}
 
 	set_gpio_inputs();
 	set_gpio_outputs();
@@ -158,15 +165,25 @@ int main(void)
 	//printf("INPUT: %d\nOUTPUT: %d\n", PI_INPUT, PI_OUTPUT);
 
 	int channel = 3;
+	float vcc = 3.21;
+	float vgrnd = 0.0;
+	float vdif = (vcc - vgrnd) / 255.0f;
 
 	for (;1;) {
-		unsigned char result = read_adc(channel);
-		printf("Channel %d: %d\n", channel, result);
-		usleep(250000);
+		volatile unsigned char results[8];
+		printf("\r");
+		for (int i = 0; i <= 7; ++i) {
+			results[i] = read_adc(i);
+			printf("Channel %d: %f V\t", i, results[i] * vdif);
+		}
+		sleep(1);
+		//usleep(250000);
+		fflush(stdout);
 		//++channel;
 		//channel &= 7;
 	}
 
+	stop_clock();
 	gpioTerminate();
 
 	return 0;
