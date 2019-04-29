@@ -14,8 +14,8 @@ fake_data = {"Table1" : [None, None, {"name":"patch1", "value":73}, {"name":"pat
  			 "Table2" : [None, {"name":"rasp1","value":17,}, None, {"name":"rasp2", "value":55}, None, None, None, None]}
 
 def get_sensor_data_dict(host):
-	url = "{host}/data".format(host=host)
-	print("POST on ", url)
+	url = "{host}/sensordata".format(host=host)
+	print("GET on ", url)
 	try:
 		response = requests.get(url, timeout=TIMEOUT)
 	except requests.exceptions.Timeout:
@@ -90,8 +90,8 @@ if __name__ == "__main__":
 	ax = None
 	while True:
 		print("Graphing")
-		#data = get_sensor_data_dict(host)
+		data = get_sensor_data_dict(host)
 		#fig, ax = graph_data(data, fig, ax)
-		fig, ax = graph_data(fake_data, fig, ax)
-		fake_data['Table1'][2]['value'] += 10
-		fake_data['Table1'][2]['value'] %= 255
+		#fig, ax = graph_data(fake_data, fig, ax)
+		#fake_data['Table1'][2]['value'] += 10
+		#fake_data['Table1'][2]['value'] %= 255
