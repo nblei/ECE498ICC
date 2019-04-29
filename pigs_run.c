@@ -161,13 +161,14 @@ int main(int argc, char * argv[])
 
 	if (PI_INIT_FAILED == gpioInitialise()) {
 		fprintf(stderr, "Unable to initialize pigpio\n");
+		gpioTerminate();
 		exit(1);
 	}
 	else {
 		; //printf("pigpio intialized\n");
 	}
 
-	printf("\033[2J");
+	//printf("\033[2J");
 
 	//stop_clock();
 	if (start_clock(TARGET_FREQ) != 0) {
@@ -184,20 +185,17 @@ int main(int argc, char * argv[])
 	float vgrnd = 0.0;
 	float vdif = (vcc - vgrnd) / 255.0f;
 
-	for (;1;) {
+	//for (;1;) {
 		volatile unsigned char results[8];
-		printf("\r");
 		for (int i = 0; i <= 7; ++i) {
 			if (arr[i] == 0) continue;
 			results[i] = read_adc(i);
-			printf("Channel %d: %f V\t", i, results[i] * vdif);
+			printf("%d:%d\n", i, results[i]);
 		}
-		sleep(1);
 		//usleep(250000);
-		fflush(stdout);
 		//++channel;
 		//channel &= 7;
-	}
+	//}
 
 	stop_clock();
 	gpioTerminate();
